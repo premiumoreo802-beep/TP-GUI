@@ -5,7 +5,7 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
-local enabled = false
+local loopEnabled = false
 
 -- GUI
 local gui = Instance.new("ScreenGui")
@@ -88,7 +88,7 @@ title.Font = Enum.Font.GothamBold
 title.Text = "✨ She's Teleporter"
 title.Parent = header
 
--- Dragging Logic
+-- DRAGGING SYSTEM
 local dragging = false
 local dragStart = Vector2.new(0, 0)
 local startPos = UDim2.new(0, 0, 0, 0)
@@ -99,10 +99,8 @@ header.MouseButton1Down:Connect(function()
     startPos = frame.Position
 end)
 
-UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
+header.MouseButton1Up:Connect(function()
+    dragging = false
 end)
 
 UIS.InputChanged:Connect(function(input)
@@ -150,7 +148,7 @@ local boxCorner = Instance.new("UICorner")
 boxCorner.CornerRadius = UDim.new(0, 8)
 boxCorner.Parent = box
 
--- TextBox Gradient Border (fake border using frame)
+-- TextBox Gradient Border
 local boxBorder = Instance.new("Frame")
 boxBorder.Size = UDim2.new(1, 2, 1, 2)
 boxBorder.Position = UDim2.new(0, -1, 0, -1)
@@ -167,7 +165,7 @@ boxBorderCorner.Parent = boxBorder
 local button = Instance.new("TextButton")
 button.Size = UDim2.new(1, -20, 0, 40)
 button.Position = UDim2.new(0, 10, 0, 120)
-button.Text = "TELEPORT: OFF"
+button.Text = "LOOP: OFF"
 button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.BorderSizePixel = 0
@@ -197,7 +195,7 @@ buttonStroke.Parent = button
 
 -- Button Hover Effect
 button.MouseEnter:Connect(function()
-    if enabled then
+    if loopEnabled then
         button.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
         buttonGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 255, 150)),
@@ -215,7 +213,7 @@ button.MouseEnter:Connect(function()
 end)
 
 button.MouseLeave:Connect(function()
-    if enabled then
+    if loopEnabled then
         button.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
         buttonGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 100)),
@@ -232,12 +230,12 @@ button.MouseLeave:Connect(function()
     end
 end)
 
--- Button Click
+-- Button Click - Toggle Loop
 button.MouseButton1Click:Connect(function()
-    enabled = not enabled
-    button.Text = enabled and "🚀 TELEPORT: ON" or "TELEPORT: OFF"
+    loopEnabled = not loopEnabled
+    button.Text = loopEnabled and "🚀 LOOP: ON" or "LOOP: OFF"
     
-    if enabled then
+    if loopEnabled then
         button.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
         buttonGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 100)),
@@ -254,10 +252,10 @@ button.MouseButton1Click:Connect(function()
     end
 end)
 
--- Teleport Loop
+-- TELEPORT LOOP
 task.spawn(function()
     while true do
-        if enabled then
+        if loopEnabled then
             local x, y, z = box.Text:match("^%s*(-?[%d%.]+)%s*,%s*(-?[%d%.]+)%s*,%s*(-?[%d%.]+)%s*$")
             
             if x and y and z then
@@ -265,6 +263,6 @@ task.spawn(function()
             end
         end
         
-        task.wait(1)
+        task.wait(0.1)
     end
 end)
