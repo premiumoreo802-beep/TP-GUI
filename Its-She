@@ -9,27 +9,28 @@ local gui = Instance.new("ScreenGui")
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 160, 0, 170)
+frame.Size = UDim2.new(0, 160, 0, 210)
 frame.Position = UDim2.new(0, 20, 0, 20)
 frame.Parent = gui
 
-local function makeBox(y, placeholder)
+local function makeBox(y, placeholder, default)
 	local box = Instance.new("TextBox")
 	box.Size = UDim2.new(0, 140, 0, 25)
 	box.Position = UDim2.new(0, 10, 0, y)
 	box.PlaceholderText = placeholder
-	box.Text = "0"
+	box.Text = default or ""
 	box.Parent = frame
 	return box
 end
 
-local xBox = makeBox(10, "X")
-local yBox = makeBox(45, "Y")
-local zBox = makeBox(80, "Z")
+local xBox = makeBox(10, "X", "0")
+local yBox = makeBox(45, "Y", "0")
+local zBox = makeBox(80, "Z", "0")
+local intervalBox = makeBox(115, "Interval (seconds)", "1")
 
 local button = Instance.new("TextButton")
 button.Size = UDim2.new(0, 140, 0, 35)
-button.Position = UDim2.new(0, 10, 0, 120)
+button.Position = UDim2.new(0, 10, 0, 155)
 button.Text = "Teleport: OFF"
 button.Parent = frame
 
@@ -43,175 +44,18 @@ while true do
 		local x = tonumber(xBox.Text)
 		local y = tonumber(yBox.Text)
 		local z = tonumber(zBox.Text)
+		local interval = tonumber(intervalBox.Text) or 1
+
+		if interval < 0 then
+			interval = 0
+		end
 
 		if x and y and z then
 			hrp.CFrame = CFrame.new(x, y, z)
 		end
 
-		task.wait(1)
+		task.wait(interval)
 	else
 		task.wait(0.1)
 	end
-endUIS.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local mouseLoc = UIS:GetMouseLocation()
-        local delta = mouseLoc - dragStart
-        
-        frame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- TextBox Label
-local boxLabel = Instance.new("TextLabel")
-boxLabel.Size = UDim2.new(1, -20, 0, 20)
-boxLabel.Position = UDim2.new(0, 10, 0, 55)
-boxLabel.BackgroundTransparency = 1
-boxLabel.TextColor3 = Color3.fromRGB(200, 150, 255)
-boxLabel.TextScaled = true
-boxLabel.Font = Enum.Font.Gotham
-boxLabel.Text = "Coordinates (X, Y, Z)"
-boxLabel.TextXAlignment = Enum.TextXAlignment.Left
-boxLabel.Parent = frame
-
--- TextBox
-local box = Instance.new("TextBox")
-box.Size = UDim2.new(1, -20, 0, 35)
-box.Position = UDim2.new(0, 10, 0, 75)
-box.PlaceholderText = "Example: 100, 25, -50"
-box.Text = ""
-box.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-box.TextColor3 = Color3.fromRGB(255, 200, 255)
-box.PlaceholderColor3 = Color3.fromRGB(120, 100, 150)
-box.BorderSizePixel = 0
-box.TextScaled = true
-box.Font = Enum.Font.Gotham
-box.Parent = frame
-
--- TextBox Rounded Corners
-local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0, 8)
-boxCorner.Parent = box
-
--- TextBox Gradient Border
-local boxBorder = Instance.new("Frame")
-boxBorder.Size = UDim2.new(1, 2, 1, 2)
-boxBorder.Position = UDim2.new(0, -1, 0, -1)
-boxBorder.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
-boxBorder.BorderSizePixel = 0
-boxBorder.ZIndex = 0
-boxBorder.Parent = box
-
-local boxBorderCorner = Instance.new("UICorner")
-boxBorderCorner.CornerRadius = UDim.new(0, 8)
-boxBorderCorner.Parent = boxBorder
-
--- Button
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(1, -20, 0, 40)
-button.Position = UDim2.new(0, 10, 0, 120)
-button.Text = "LOOP: OFF"
-button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.BorderSizePixel = 0
-button.TextScaled = true
-button.Font = Enum.Font.GothamBold
-button.Parent = frame
-
--- Button Rounded Corners
-local buttonCorner = Instance.new("UICorner")
-buttonCorner.CornerRadius = UDim.new(0, 10)
-buttonCorner.Parent = button
-
--- Button Gradient
-local buttonGradient = Instance.new("UIGradient")
-buttonGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
-})
-buttonGradient.Rotation = 90
-buttonGradient.Parent = button
-
--- Button Stroke
-local buttonStroke = Instance.new("UIStroke")
-buttonStroke.Color = Color3.fromRGB(150, 200, 255)
-buttonStroke.Thickness = 2
-buttonStroke.Parent = button
-
--- Button Hover Effect
-button.MouseEnter:Connect(function()
-    if loopEnabled then
-        button.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-        buttonGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 255, 150)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 200, 100))
-        })
-        buttonStroke.Color = Color3.fromRGB(200, 255, 200)
-    else
-        button.BackgroundColor3 = Color3.fromRGB(100, 180, 255)
-        buttonGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 150, 255))
-        })
-        buttonStroke.Color = Color3.fromRGB(200, 220, 255)
-    end
-end)
-
-button.MouseLeave:Connect(function()
-    if loopEnabled then
-        button.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-        buttonGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 100)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 150, 50))
-        })
-        buttonStroke.Color = Color3.fromRGB(150, 255, 150)
-    else
-        button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
-        buttonGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
-        })
-        buttonStroke.Color = Color3.fromRGB(150, 200, 255)
-    end
-end)
-
--- Button Click - Toggle Loop
-button.MouseButton1Click:Connect(function()
-    loopEnabled = not loopEnabled
-    button.Text = loopEnabled and "🚀 LOOP: ON" or "LOOP: OFF"
-    
-    if loopEnabled then
-        button.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-        buttonGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 100)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 150, 50))
-        })
-        buttonStroke.Color = Color3.fromRGB(150, 255, 150)
-    else
-        button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
-        buttonGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 200))
-        })
-        buttonStroke.Color = Color3.fromRGB(150, 200, 255)
-    end
-end)
-
--- TELEPORT LOOP
-task.spawn(function()
-    while true do
-        if loopEnabled then
-            local x, y, z = box.Text:match("^%s*(-?[%d%.]+)%s*,%s*(-?[%d%.]+)%s*,%s*(-?[%d%.]+)%s*$")
-            
-            if x and y and z then
-                hrp.CFrame = CFrame.new(tonumber(x), tonumber(y), tonumber(z))
-            end
-        end
-        
-        task.wait(0.1)
-    end
-end)
+end
