@@ -1,109 +1,58 @@
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-
-local player = Players.LocalPlayer
+local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
-local loopEnabled = false
+local enabled = false
 
 -- GUI
 local gui = Instance.new("ScreenGui")
-gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 200)
-frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-frame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-frame.BorderSizePixel = 0
+frame.Size = UDim2.new(0, 160, 0, 170)
+frame.Position = UDim2.new(0, 20, 0, 20)
 frame.Parent = gui
 
--- Rounded Corners on Main Frame
-local frameCorner = Instance.new("UICorner")
-frameCorner.CornerRadius = UDim.new(0, 15)
-frameCorner.Parent = frame
+local function makeBox(y, placeholder)
+	local box = Instance.new("TextBox")
+	box.Size = UDim2.new(0, 140, 0, 25)
+	box.Position = UDim2.new(0, 10, 0, y)
+	box.PlaceholderText = placeholder
+	box.Text = "0"
+	box.Parent = frame
+	return box
+end
 
--- Gradient Background
-local frameGradient = Instance.new("UIGradient")
-frameGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 40)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 40))
-})
-frameGradient.Rotation = 45
-frameGradient.Parent = frame
+local xBox = makeBox(10, "X")
+local yBox = makeBox(45, "Y")
+local zBox = makeBox(80, "Z")
 
--- Drop Shadow
-local shadow = Instance.new("Frame")
-shadow.Size = UDim2.new(1, 10, 1, 10)
-shadow.Position = UDim2.new(0, -5, 0, -5)
-shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-shadow.BorderSizePixel = 0
-shadow.ZIndex = 0
-shadow.Parent = frame
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 140, 0, 35)
+button.Position = UDim2.new(0, 10, 0, 120)
+button.Text = "Teleport: OFF"
+button.Parent = frame
 
-local shadowCorner = Instance.new("UICorner")
-shadowCorner.CornerRadius = UDim.new(0, 15)
-shadowCorner.Parent = shadow
-
-local shadowGradient = Instance.new("UIGradient")
-shadowGradient.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 0.3),
-    NumberSequenceKeypoint.new(1, 0.8)
-})
-shadowGradient.Parent = shadow
-
--- Draggable Header
-local header = Instance.new("Frame")
-header.Name = "DragHeader"
-header.Size = UDim2.new(1, 0, 0, 50)
-header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = Color3.fromRGB(25, 10, 50)
-header.BorderSizePixel = 0
-header.Parent = frame
-header.ZIndex = 1
-
--- Header Rounded Corners
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 15)
-headerCorner.Parent = header
-
--- Header Gradient
-local headerGradient = Instance.new("UIGradient")
-headerGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 200)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 30, 150))
-})
-headerGradient.Rotation = 90
-headerGradient.Parent = header
-
--- Title
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -20, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
-title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(255, 200, 255)
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.Text = "✨ She's Teleporter"
-title.Parent = header
-
--- DRAGGING SYSTEM
-local dragging = false
-local dragStart = Vector2.new(0, 0)
-local startPos = UDim2.new(0, 0, 0, 0)
-
-header.MouseButton1Down:Connect(function()
-    dragging = true
-    dragStart = UIS:GetMouseLocation()
-    startPos = frame.Position
+button.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	button.Text = enabled and "Teleport: ON" or "Teleport: OFF"
 end)
 
-header.MouseButton1Up:Connect(function()
-    dragging = false
-end)
+while true do
+	if enabled then
+		local x = tonumber(xBox.Text)
+		local y = tonumber(yBox.Text)
+		local z = tonumber(zBox.Text)
 
-UIS.InputChanged:Connect(function(input)
+		if x and y and z then
+			hrp.CFrame = CFrame.new(x, y, z)
+		end
+
+		task.wait(1)
+	else
+		task.wait(0.1)
+	end
+endUIS.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local mouseLoc = UIS:GetMouseLocation()
         local delta = mouseLoc - dragStart
