@@ -1,6 +1,5 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService") -- Added for dragging
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -24,41 +23,6 @@ frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.BorderSizePixel = 0
 frame.Parent = gui
 
--- Dragging Logic
-local dragging, dragInput, dragStart, startPosition
-
-local function update(input)
-	local delta = input.Position - dragStart
-	frame.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
-end
-
-frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPosition = frame.Position
-		
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-frame.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		update(input)
-	end
-end)
-
--- Minimized Button
 local minButton = Instance.new("TextButton")
 minButton.Size = UDim2.new(0, 30, 0, 30)
 minButton.Position = UDim2.new(1, 5, 0, 0)
@@ -103,6 +67,85 @@ label.Text = "X: 0 Y: 0 Z: 0"
 label.Parent = frame
 
 -- Toggle GUI Visibility Logic
+minButton.MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+	
+	-- Toggle visibility of all internal components
+	xBox.Visible = not isMinimized
+	yBox.Visible = not isMinimized
+	zBox.Visible = not isMinimized
+	intervalBox.Visible = not isMinimized
+	tweenTimeBox.Visible = not isMinimized
+	button.Visible = not isMinimized
+	modeButton.Visible = not isMinimized
+	label.Visible = not isMinimized
+	
+	if isMinimized then
+		frame.Size = UDim2.new(0, 0, 0, 30)        -- Shrink frame to hide body
+		frame.BackgroundTransparency = 1          -- Hide frame box entirely
+		minButton.Position = UDim2.new(0, 0, 0, 0) -- Move button to base position
+	else
+		frame.Size = UDim2.new(0, 170, 0, 300)    -- Restore frame size
+		frame.BackgroundTransparency = 0          -- Restore frame background
+		minButton.Position = UDim2.new(1, 5, 0, 0) -- Snap button back to top right
+	end
+end)
+
+button.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	button.Text = enabled and "Auto: ON" or "Auto: OFF"
+end)
+
+modeButton.MouseButton1Click:Connect(function()
+	useTween = not useTween
+	modeButton.Text = useTween and "Mode: Tween" or "Mode: Teleport"
+end)
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	hrp = character:WaitForChild("HumanoidRootPart")
+end)
+
+task.spawn(function()
+	while true do
+		local pos = hrp.Position
+		label.Text = string.format(
+			"X: %.1f\nY: %.1f\nZ: %.1f",
+			pos.X, pos.Y, pos.Z
+		)
+		task.wait(0.1)
+	end
+end)
+
+while true do
+	if enabled then
+		local x = tonumber(xBox.Text)
+		local y = tonumber(yBox.Text)
+		local z = tonumber(zBox.Text)
+		local interval = math.max(tonumber(intervalBox.Text) or 1, 0)
+		local tweenTime = math.max(tonumber(tweenTimeBox.Text) or 2, 0)
+
+		if x and y and z then
+			local target = CFrame.new(x, y, z)
+
+			if useTween then
+				local tween = TweenService:Create(
+					hrp,
+					TweenInfo.new(tweenTime, Enum.EasingStyle.Linear),
+					{CFrame = target}
+				)
+				tween:Play()
+				tween.Completed:Wait()
+			else
+				hrp.CFrame = target
+			end
+		end
+
+		task.wait(interval)
+	else
+		task.wait(0.1)
+	end
+end
 minButton.MouseButton1Click:Connect(function()
 	isMinimized = not isMinimized
 	
