@@ -1,6 +1,7 @@
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
 
-local player = game.Players.LocalPlayer
+local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
@@ -12,7 +13,7 @@ local gui = Instance.new("ScreenGui")
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 170, 0, 255)
+frame.Size = UDim2.new(0, 170, 0, 300)
 frame.Position = UDim2.new(0, 20, 0, 20)
 frame.Parent = gui
 
@@ -44,6 +45,13 @@ modeButton.Position = UDim2.new(0, 10, 0, 220)
 modeButton.Text = "Mode: Teleport"
 modeButton.Parent = frame
 
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0, 150, 0, 35)
+label.Position = UDim2.new(0, 10, 0, 255)
+label.TextScaled = true
+label.Text = "X: 0 Y: 0 Z: 0"
+label.Parent = frame
+
 button.MouseButton1Click:Connect(function()
 	enabled = not enabled
 	button.Text = enabled and "Auto: ON" or "Auto: OFF"
@@ -52,6 +60,22 @@ end)
 modeButton.MouseButton1Click:Connect(function()
 	useTween = not useTween
 	modeButton.Text = useTween and "Mode: Tween" or "Mode: Teleport"
+end)
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	hrp = character:WaitForChild("HumanoidRootPart")
+end)
+
+task.spawn(function()
+	while true do
+		local pos = hrp.Position
+		label.Text = string.format(
+			"X: %.1f\nY: %.1f\nZ: %.1f",
+			pos.X, pos.Y, pos.Z
+		)
+		task.wait(0.1)
+	end
 end)
 
 while true do
