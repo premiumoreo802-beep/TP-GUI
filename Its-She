@@ -7,15 +7,29 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 
 local enabled = false
 local useTween = false
+local isMinimized = false
 
 -- GUI
 local gui = Instance.new("ScreenGui")
+gui.Name = "TeleportGui"
+gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
+-- Main Menu Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 170, 0, 300)
 frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BorderSizePixel = 0
 frame.Parent = gui
+
+local minButton = Instance.new("TextButton")
+minButton.Size = UDim2.new(0, 30, 0, 30)
+minButton.Position = UDim2.new(1, 5, 0, 0)
+minButton.Text = "" 
+minButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+minButton.BorderSizePixel = 0
+minButton.Parent = frame
 
 local function makeBox(y, placeholder, default)
 	local box = Instance.new("TextBox")
@@ -51,6 +65,31 @@ label.Position = UDim2.new(0, 10, 0, 255)
 label.TextScaled = true
 label.Text = "X: 0 Y: 0 Z: 0"
 label.Parent = frame
+
+-- Toggle GUI Visibility Logic
+minButton.MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+	
+	-- Toggle visibility of all internal components
+	xBox.Visible = not isMinimized
+	yBox.Visible = not isMinimized
+	zBox.Visible = not isMinimized
+	intervalBox.Visible = not isMinimized
+	tweenTimeBox.Visible = not isMinimized
+	button.Visible = not isMinimized
+	modeButton.Visible = not isMinimized
+	label.Visible = not isMinimized
+	
+	if isMinimized then
+		frame.Size = UDim2.new(0, 0, 0, 30)        -- Shrink frame to hide body
+		frame.BackgroundTransparency = 1          -- Hide frame box entirely
+		minButton.Position = UDim2.new(0, 0, 0, 0) -- Move button to base position
+	else
+		frame.Size = UDim2.new(0, 170, 0, 300)    -- Restore frame size
+		frame.BackgroundTransparency = 0          -- Restore frame background
+		minButton.Position = UDim2.new(1, 5, 0, 0) -- Snap button back to top right
+	end
+end)
 
 button.MouseButton1Click:Connect(function()
 	enabled = not enabled
