@@ -1,6 +1,5 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -8,102 +7,106 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 
 local enabled = false
 local useTween = false
-local isMinimized = false
 
 -- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "TeleportGui"
-gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- Main Menu Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 280, 0, 420)
+frame.Size = UDim2.new(0, 170, 0, 300)
 frame.Position = UDim2.new(0, 20, 0, 20)
-frame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-frame.BorderSizePixel = 0
 frame.Parent = gui
 
--- Rounded Corners
-local frameCorner = Instance.new("UICorner")
-frameCorner.CornerRadius = UDim.new(0, 15)
-frameCorner.Parent = frame
+local function makeBox(y, placeholder, default)
+	local box = Instance.new("TextBox")
+	box.Size = UDim2.new(0, 150, 0, 25)
+	box.Position = UDim2.new(0, 10, 0, y)
+	box.PlaceholderText = placeholder
+	box.Text = default or ""
+	box.Parent = frame
+	return box
+end
 
--- Gradient Background
-local frameGradient = Instance.new("UIGradient")
-frameGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 40)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 40))
-})
-frameGradient.Rotation = 45
-frameGradient.Parent = frame
+local xBox = makeBox(10, "X", "0")
+local yBox = makeBox(45, "Y", "0")
+local zBox = makeBox(80, "Z", "0")
+local intervalBox = makeBox(115, "Interval", "1")
+local tweenTimeBox = makeBox(150, "Tween Time", "2")
 
--- Header
-local header = Instance.new("Frame")
-header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 50)
-header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = Color3.fromRGB(25, 10, 50)
-header.BorderSizePixel = 0
-header.Parent = frame
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 150, 0, 30)
+button.Position = UDim2.new(0, 10, 0, 185)
+button.Text = "Auto: OFF"
+button.Parent = frame
 
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 15)
-headerCorner.Parent = header
+local modeButton = Instance.new("TextButton")
+modeButton.Size = UDim2.new(0, 150, 0, 30)
+modeButton.Position = UDim2.new(0, 10, 0, 220)
+modeButton.Text = "Mode: Teleport"
+modeButton.Parent = frame
 
-local headerGradient = Instance.new("UIGradient")
-headerGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 200)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 30, 150))
-})
-headerGradient.Rotation = 90
-headerGradient.Parent = header
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0, 150, 0, 35)
+label.Position = UDim2.new(0, 10, 0, 255)
+label.TextScaled = true
+label.Text = "X: 0 Y: 0 Z: 0"
+label.Parent = frame
 
--- Title
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -60, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
-title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(255, 200, 255)
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.Text = "✨ Advanced Teleporter"
-title.Parent = header
-
--- Dragging Logic
-local dragging = false
-local dragStart = Vector2.new(0, 0)
-local startPos = UDim2.new(0, 0, 0, 0)
-
-header.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-    end
+button.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	button.Text = enabled and "Auto: ON" or "Auto: OFF"
 end)
 
-UserInputService.InputEnded:Connect(function(input, gameProcessed)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
+modeButton.MouseButton1Click:Connect(function()
+	useTween = not useTween
+	modeButton.Text = useTween and "Mode: Tween" or "Mode: Teleport"
 end)
 
-UserInputService.InputChanged:Connect(function(input, gameProcessed)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
+player.CharacterAdded:Connect(function(char)
+	character = char
+	hrp = character:WaitForChild("HumanoidRootPart")
 end)
 
--- Minimize Button
-local minButton = Instance.new("TextButton")
+task.spawn(function()
+	while true do
+		local pos = hrp.Position
+		label.Text = string.format(
+			"X: %.1f\nY: %.1f\nZ: %.1f",
+			pos.X, pos.Y, pos.Z
+		)
+		task.wait(0.1)
+	end
+end)
+
+while true do
+	if enabled then
+		local x = tonumber(xBox.Text)
+		local y = tonumber(yBox.Text)
+		local z = tonumber(zBox.Text)
+		local interval = math.max(tonumber(intervalBox.Text) or 1, 0)
+		local tweenTime = math.max(tonumber(tweenTimeBox.Text) or 2, 0)
+
+		if x and y and z then
+			local target = CFrame.new(x, y, z)
+
+			if useTween then
+				local tween = TweenService:Create(
+					hrp,
+					TweenInfo.new(tweenTime, Enum.EasingStyle.Linear),
+					{CFrame = target}
+				)
+				tween:Play()
+				tween.Completed:Wait()
+			else
+				hrp.CFrame = target
+			end
+		end
+
+		task.wait(interval)
+	else
+		task.wait(0.1)
+	end
+endlocal minButton = Instance.new("TextButton")
 minButton.Size = UDim2.new(0, 40, 0, 40)
 minButton.Position = UDim2.new(1, -45, 0, 5)
 minButton.Text = "−"
