@@ -1,5 +1,6 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -17,93 +18,286 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Main Menu Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 170, 0, 300)
+frame.Size = UDim2.new(0, 280, 0, 420)
 frame.Position = UDim2.new(0, 20, 0, 20)
-frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 frame.BorderSizePixel = 0
 frame.Parent = gui
 
-local minButton = Instance.new("TextButton")
-minButton.Size = UDim2.new(0, 30, 0, 30)
-minButton.Position = UDim2.new(1, 5, 0, 0)
-minButton.Text = "" 
-minButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-minButton.BorderSizePixel = 0
-minButton.Parent = frame
+-- Rounded Corners
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 15)
+frameCorner.Parent = frame
 
+-- Gradient Background
+local frameGradient = Instance.new("UIGradient")
+frameGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 40))
+})
+frameGradient.Rotation = 45
+frameGradient.Parent = frame
+
+-- Header
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 50)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundColor3 = Color3.fromRGB(25, 10, 50)
+header.BorderSizePixel = 0
+header.Parent = frame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 15)
+headerCorner.Parent = header
+
+local headerGradient = Instance.new("UIGradient")
+headerGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 50, 200)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 30, 150))
+})
+headerGradient.Rotation = 90
+headerGradient.Parent = header
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -60, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 200, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Text = "✨ Advanced Teleporter"
+title.Parent = header
+
+-- Dragging Logic
+local dragging = false
+local dragStart = Vector2.new(0, 0)
+local startPos = UDim2.new(0, 0, 0, 0)
+
+header.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input, gameProcessed)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Minimize Button
+local minButton = Instance.new("TextButton")
+minButton.Size = UDim2.new(0, 40, 0, 40)
+minButton.Position = UDim2.new(1, -45, 0, 5)
+minButton.Text = "−"
+minButton.TextScaled = true
+minButton.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
+minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minButton.BorderSizePixel = 0
+minButton.Font = Enum.Font.GothamBold
+minButton.Parent = header
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 8)
+minCorner.Parent = minButton
+
+local minStroke = Instance.new("UIStroke")
+minStroke.Color = Color3.fromRGB(150, 100, 200)
+minStroke.Thickness = 2
+minStroke.Parent = minButton
+
+-- Make TextBox Function
 local function makeBox(y, placeholder, default)
-	local box = Instance.new("TextBox")
-	box.Size = UDim2.new(0, 150, 0, 25)
-	box.Position = UDim2.new(0, 10, 0, y)
-	box.PlaceholderText = placeholder
-	box.Text = default or ""
-	box.Parent = frame
-	return box
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1, -20, 0, 30)
+    box.Position = UDim2.new(0, 10, 0, y)
+    box.PlaceholderText = placeholder
+    box.Text = default or ""
+    box.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    box.TextColor3 = Color3.fromRGB(255, 200, 255)
+    box.PlaceholderColor3 = Color3.fromRGB(120, 100, 150)
+    box.BorderSizePixel = 0
+    box.TextScaled = true
+    box.Font = Enum.Font.Gotham
+    box.Parent = frame
+    
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 8)
+    boxCorner.Parent = box
+    
+    return box
 end
 
-local xBox = makeBox(10, "X", "0")
-local yBox = makeBox(45, "Y", "0")
-local zBox = makeBox(80, "Z", "0")
-local intervalBox = makeBox(115, "Interval", "1")
-local tweenTimeBox = makeBox(150, "Tween Time", "2")
+-- Input Boxes
+local xBox = makeBox(60, "X Coordinate", "0")
+local yBox = makeBox(100, "Y Coordinate", "0")
+local zBox = makeBox(140, "Z Coordinate", "0")
+local intervalBox = makeBox(180, "Interval (seconds)", "1")
+local tweenTimeBox = makeBox(220, "Tween Time (seconds)", "2")
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 150, 0, 30)
-button.Position = UDim2.new(0, 10, 0, 185)
-button.Text = "Auto: OFF"
-button.Parent = frame
+-- Make Button Function
+local function makeButton(y, text, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -20, 0, 35)
+    btn.Position = UDim2.new(0, 10, 0, y)
+    btn.Text = text
+    btn.BackgroundColor3 = color
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.BorderSizePixel = 0
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = frame
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = btn
+    
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Thickness = 2
+    btnStroke.Parent = btn
+    
+    return btn, btnStroke
+end
 
-local modeButton = Instance.new("TextButton")
-modeButton.Size = UDim2.new(0, 150, 0, 30)
-modeButton.Position = UDim2.new(0, 10, 0, 220)
-modeButton.Text = "Mode: Teleport"
-modeButton.Parent = frame
+-- Auto Button
+local button, buttonStroke = makeButton(260, "AUTO: OFF", Color3.fromRGB(50, 100, 200))
+buttonStroke.Color = Color3.fromRGB(150, 200, 255)
 
+-- Mode Button
+local modeButton, modeStroke = makeButton(305, "MODE: TELEPORT", Color3.fromRGB(150, 100, 50))
+modeStroke.Color = Color3.fromRGB(200, 150, 100)
+
+-- Position Label
 local label = Instance.new("TextLabel")
-label.Size = UDim2.new(0, 150, 0, 35)
-label.Position = UDim2.new(0, 10, 0, 255)
+label.Size = UDim2.new(1, -20, 0, 50)
+label.Position = UDim2.new(0, 10, 0, 350)
 label.TextScaled = true
-label.Text = "X: 0 Y: 0 Z: 0"
+label.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+label.TextColor3 = Color3.fromRGB(100, 255, 100)
+label.BorderSizePixel = 0
+label.Font = Enum.Font.Gotham
+label.Text = "X: 0\nY: 0\nZ: 0"
 label.Parent = frame
 
--- Toggle GUI Visibility Logic
+local labelCorner = Instance.new("UICorner")
+labelCorner.CornerRadius = UDim.new(0, 8)
+labelCorner.Parent = label
+
+-- Toggle GUI Visibility
 minButton.MouseButton1Click:Connect(function()
-	isMinimized = not isMinimized
-	
-	-- Toggle visibility of all internal components
-	xBox.Visible = not isMinimized
-	yBox.Visible = not isMinimized
-	zBox.Visible = not isMinimized
-	intervalBox.Visible = not isMinimized
-	tweenTimeBox.Visible = not isMinimized
-	button.Visible = not isMinimized
-	modeButton.Visible = not isMinimized
-	label.Visible = not isMinimized
-	
-	if isMinimized then
-		frame.Size = UDim2.new(0, 0, 0, 30)        -- Shrink frame to hide body
-		frame.BackgroundTransparency = 1          -- Hide frame box entirely
-		minButton.Position = UDim2.new(0, 0, 0, 0) -- Move button to base position
-	else
-		frame.Size = UDim2.new(0, 170, 0, 300)    -- Restore frame size
-		frame.BackgroundTransparency = 0          -- Restore frame background
-		minButton.Position = UDim2.new(1, 5, 0, 0) -- Snap button back to top right
-	end
+    isMinimized = not isMinimized
+    
+    xBox.Visible = not isMinimized
+    yBox.Visible = not isMinimized
+    zBox.Visible = not isMinimized
+    intervalBox.Visible = not isMinimized
+    tweenTimeBox.Visible = not isMinimized
+    button.Visible = not isMinimized
+    modeButton.Visible = not isMinimized
+    label.Visible = not isMinimized
+    title.Visible = not isMinimized
+    
+    if isMinimized then
+        frame.Size = UDim2.new(0, 60, 0, 60)
+        minButton.Text = "+"
+    else
+        frame.Size = UDim2.new(0, 280, 0, 420)
+        minButton.Text = "−"
+    end
 end)
 
+-- Auto Button Click
 button.MouseButton1Click:Connect(function()
-	enabled = not enabled
-	button.Text = enabled and "Auto: ON" or "Auto: OFF"
+    enabled = not enabled
+    button.Text = enabled and "🚀 AUTO: ON" or "AUTO: OFF"
+    
+    if enabled then
+        button.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+        buttonStroke.Color = Color3.fromRGB(100, 255, 150)
+    else
+        button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+        buttonStroke.Color = Color3.fromRGB(150, 200, 255)
+    end
 end)
 
+-- Mode Button Click
 modeButton.MouseButton1Click:Connect(function()
-	useTween = not useTween
-	modeButton.Text = useTween and "Mode: Tween" or "Mode: Teleport"
+    useTween = not useTween
+    modeButton.Text = useTween and "MODE: TWEEN" or "MODE: TELEPORT"
+    
+    if useTween then
+        modeButton.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+        modeStroke.Color = Color3.fromRGB(255, 200, 100)
+    else
+        modeButton.BackgroundColor3 = Color3.fromRGB(150, 100, 50)
+        modeStroke.Color = Color3.fromRGB(200, 150, 100)
+    end
 end)
 
+-- Character Respawn
 player.CharacterAdded:Connect(function(char)
-	character = char
-	hrp = character:WaitForChild("HumanoidRootPart")
+    character = char
+    hrp = character:WaitForChild("HumanoidRootPart")
+end)
+
+-- Update Position Label
+task.spawn(function()
+    while true do
+        if hrp then
+            local pos = hrp.Position
+            label.Text = string.format("X: %.1f\nY: %.1f\nZ: %.1f", pos.X, pos.Y, pos.Z)
+        end
+        task.wait(0.1)
+    end
+end)
+
+-- Teleport Loop
+while true do
+    if enabled then
+        local x = tonumber(xBox.Text)
+        local y = tonumber(yBox.Text)
+        local z = tonumber(zBox.Text)
+        local interval = math.max(tonumber(intervalBox.Text) or 1, 0.1)
+        local tweenTime = math.max(tonumber(tweenTimeBox.Text) or 2, 0.1)
+        
+        if x and y and z then
+            local target = CFrame.new(x, y, z)
+            
+            if useTween then
+                local tween = TweenService:Create(
+                    hrp,
+                    TweenInfo.new(tweenTime, Enum.EasingStyle.Linear),
+                    {CFrame = target}
+                )
+                tween:Play()
+                tween.Completed:Wait()
+            else
+                hrp.CFrame = target
+            end
+        end
+        
+        task.wait(interval)
+    else
+        task.wait(0.1)
+    end
+end	hrp = character:WaitForChild("HumanoidRootPart")
 end)
 
 task.spawn(function()
